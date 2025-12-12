@@ -42,7 +42,7 @@ type IPXSourceMeta = {
 export type IPX = (
   id: string,
   modifiers?: Partial<
-    Record<HandlerName | "f" | "format" | "a" | "animated", string>
+    Record<HandlerName | "f" | "format" | "a" | "animated" | "svgo", string>
   >,
   requestOptions?: any,
 ) => {
@@ -239,10 +239,72 @@ export function createIPX(userOptions: IPXOptions): IPX {
         } else {
           // https://github.com/svg/svgo
           const { optimize } = await getSVGO();
+
+          // Start with the static SVGO configuration
+          let svgoConfig: SVGOConfig = options.svgo || {};
+
+          // 💡 Dynamic SVGO Configuration based on URL Modifier (svgo=...)
+          const svgoModifier = modifiers.svgo;
+
+          if (svgoModifier) {
+            const modifierString = svgoModifier.toString();
+            // Expected format: "convertColors,s_rgb_ffffff" or "convertColors,s_currentColor"
+            const parts = modifierString.split(',');
+
+            if (parts[0] === 'convertColors' && parts.length === 2) {
+              let colorValue = '';
+
+              // Extract color value from the second part (e.g., s_rgb_ffffff)
+              if (parts[1].startsWith('s_rgb_')) {
+                colorValue = `#${parts[1].slice(6)}`; // Converts s_rgb_ffffff to #ffffff
+              } else if (parts[1] === 's_currentColor') {
+                colorValue = 'currentColor';
+              }
+
+              if (colorValue) {
+                // Create the dynamic plugins array
+                const dynamicPlugins = [
+                  // 1. Remove existing fill, stroke, and opacity attributes
+                  {
+                    name: 'removeAttrs',
+                    params: {
+                      // Correct regex to remove attributes: fill, stroke, fill-opacity, stroke-opacity, opacity
+                      attrs: ['*[fill]', '*[stroke]', '(fill-opacity|stroke-opacity|opacity)'],
+                      // Note: IPX might need the explicit array syntax for removeAttrs attributes
+                    }
+                  },
+                  // 2. Set the desired fill color on the root SVG element
+                  {
+                    name: 'addAttributesToSVGElement',
+                    params: {
+                      attributes: [
+                        { 'fill': colorValue }
+                      ]
+                    }
+                  }
+                ];
+
+                // Merge dynamic plugins with static plugins
+                svgoConfig = {
+                  ...svgoConfig,
+                  // Ensure 'removeScripts' is still run, usually handled by IPX core, but explicitly include
+                  plugins: [
+                    ...(dynamicPlugins as any), // Type assertion might be needed here
+                    ...(options.svgo?.plugins || []) // Add any static plugins defined in ipx.js
+                  ],
+                };
+              }
+            }
+          }
+
+          // Apply a base cleanup/safety plugin (if not using preset-default)
+          // IPX already adds 'removeScripts' implicitly, so we merge with the dynamically constructed config.
           const svg = optimize(sourceData.toString("utf8"), {
-            ...options.svgo,
-            plugins: ["removeScripts", ...(options.svgo?.plugins || [])],
+            ...svgoConfig,
+            // Ensure removeScripts is the first plugin, as IPX seems to enforce it
+            plugins: ["removeScripts", ...(svgoConfig?.plugins || [])],
           }).data;
+
           return {
             data: svg,
             format: "svg+xml",
