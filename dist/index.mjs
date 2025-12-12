@@ -1,4 +1,4 @@
-export { c as createIPX, b as createIPXH3App, a as createIPXH3Handler, e as createIPXNodeServer, f as createIPXPlainServer, d as createIPXWebServer, g as ipxFSStorage, i as ipxHttpStorage } from './shared/ipx.CXJeaylD.mjs';
+export { c as createIPX, b as createIPXH3App, a as createIPXH3Handler, e as createIPXNodeServer, f as createIPXPlainServer, d as createIPXWebServer, g as ipxFSStorage, i as ipxHttpStorage } from './shared/ipx.CeHUR-Yr.mjs';
 import { createError } from 'h3';
 import 'defu';
 import 'ufo';

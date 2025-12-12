@@ -232,7 +232,7 @@ type IPXSourceMeta = {
  * - `process`: A method that returns a promise resolving to an object containing the processed image data, metadata,
  * and format. The image data can be in the form of a `buffer` or a string, depending on the format and processing.
  */
-type IPX = (id: string, modifiers?: Partial<Record<HandlerName | "f" | "format" | "a" | "animated", string>>, requestOptions?: any) => {
+type IPX = (id: string, modifiers?: Partial<Record<HandlerName | "f" | "format" | "a" | "animated" | "svgo", string>>, requestOptions?: any) => {
     getSourceMeta: () => Promise<IPXSourceMeta>;
     process: () => Promise<{
         data: Buffer | string;
