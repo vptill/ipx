@@ -1,6 +1,6 @@
 'use strict';
 
-const nodeFs = require('./shared/ipx.DqEN5LYM.cjs');
+const nodeFs = require('./shared/ipx.Cc82pPn5.cjs');
 const h3 = require('h3');
 require('defu');
 require('ufo');

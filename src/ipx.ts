@@ -247,17 +247,25 @@ export function createIPX(userOptions: IPXOptions): IPX {
           const svgoModifier = modifiers.svgo;
 
           if (svgoModifier) {
-            const modifierString = svgoModifier.toString();
-            // Expected format: "convertColors,s_rgb_ffffff" or "convertColors,s_currentColor"
-            const parts = modifierString.split(',');
+            let operation = svgoModifier.toString();
+            let param = '';
 
-            if (parts[0] === 'convertColors' && parts.length === 2) {
+            // Handle comma splitting by IPX core (e.g. svgo_convertColors,s_rgb_000000 -> svgo="convertColors", s="rgb_000000")
+            if (operation === 'convertColors' && (modifiers as any).s) {
+              param = `s_${(modifiers as any).s}`;
+            } else if (operation.includes(',')) {
+              const split = operation.split(',');
+              operation = split[0];
+              param = split[1];
+            }
+
+            if (operation === 'convertColors' && param) {
               let colorValue = '';
 
               // Extract color value from the second part (e.g., s_rgb_ffffff)
-              if (parts[1].startsWith('s_rgb_')) {
-                colorValue = `#${parts[1].slice(6)}`; // Converts s_rgb_ffffff to #ffffff
-              } else if (parts[1] === 's_currentColor') {
+              if (param.startsWith('s_rgb_')) {
+                colorValue = `#${param.slice(6)}`; // Converts s_rgb_ffffff to #ffffff
+              } else if (param === 's_currentColor') {
                 colorValue = 'currentColor';
               }
 
@@ -268,9 +276,8 @@ export function createIPX(userOptions: IPXOptions): IPX {
                   {
                     name: 'removeAttrs',
                     params: {
-                      // Correct regex to remove attributes: fill, stroke, fill-opacity, stroke-opacity, opacity
-                      attrs: ['*[fill]', '*[stroke]', '(fill-opacity|stroke-opacity|opacity)'],
-                      // Note: IPX might need the explicit array syntax for removeAttrs attributes
+                      // Remove fill, stroke, and opacity attributes to prep for recoloring
+                      attrs: '(fill|stroke|fill-opacity|stroke-opacity|opacity)'
                     }
                   },
                   // 2. Set the desired fill color on the root SVG element

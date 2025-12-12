@@ -6,7 +6,7 @@ const ipx = createIPX({
     "/picsum": "https://picsum.photos",
   },
   httpStorage: ipxHttpStorage({
-    domains: ["picsum.photos", "images.unsplash.com"],
+    domains: ["picsum.photos", "images.unsplash.com", "assets.ig-items.com"],
   }),
 });
 

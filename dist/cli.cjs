@@ -3,7 +3,7 @@
 const listhen = require('listhen');
 const citty = require('citty');
 const cli = require('listhen/cli');
-const nodeFs = require('./shared/ipx.DqEN5LYM.cjs');
+const nodeFs = require('./shared/ipx.Cc82pPn5.cjs');
 require('defu');
 require('ufo');
 require('h3');

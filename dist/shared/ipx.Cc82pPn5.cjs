@@ -421,13 +421,20 @@ function createIPX(userOptions) {
           let svgoConfig = options.svgo || {};
           const svgoModifier = modifiers.svgo;
           if (svgoModifier) {
-            const modifierString = svgoModifier.toString();
-            const parts = modifierString.split(",");
-            if (parts[0] === "convertColors" && parts.length === 2) {
+            let operation = svgoModifier.toString();
+            let param = "";
+            if (operation === "convertColors" && modifiers.s) {
+              param = `s_${modifiers.s}`;
+            } else if (operation.includes(",")) {
+              const split = operation.split(",");
+              operation = split[0];
+              param = split[1];
+            }
+            if (operation === "convertColors" && param) {
               let colorValue = "";
-              if (parts[1].startsWith("s_rgb_")) {
-                colorValue = `#${parts[1].slice(6)}`;
-              } else if (parts[1] === "s_currentColor") {
+              if (param.startsWith("s_rgb_")) {
+                colorValue = `#${param.slice(6)}`;
+              } else if (param === "s_currentColor") {
                 colorValue = "currentColor";
               }
               if (colorValue) {
@@ -436,9 +443,8 @@ function createIPX(userOptions) {
                   {
                     name: "removeAttrs",
                     params: {
-                      // Correct regex to remove attributes: fill, stroke, fill-opacity, stroke-opacity, opacity
-                      attrs: ["*[fill]", "*[stroke]", "(fill-opacity|stroke-opacity|opacity)"]
-                      // Note: IPX might need the explicit array syntax for removeAttrs attributes
+                      // Remove fill, stroke, and opacity attributes to prep for recoloring
+                      attrs: "(fill|stroke|fill-opacity|stroke-opacity|opacity)"
                     }
                   },
                   // 2. Set the desired fill color on the root SVG element
